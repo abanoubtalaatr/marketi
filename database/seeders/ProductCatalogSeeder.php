@@ -38,9 +38,9 @@ class ProductCatalogSeeder extends Seeder
                     'description' => $item['description'],
                     'main_image' => $imagePath,
                     'price' => $item['price'],
-                    'rating' => fake()->randomFloat(2, 3.5, 5),
-                    'rating_count' => fake()->numberBetween(25, 1200),
-                    'stock_quantity' => fake()->numberBetween(15, 200),
+                    'rating' => round(mt_rand(350, 500) / 100, 2),
+                    'rating_count' => mt_rand(25, 1200),
+                    'stock_quantity' => mt_rand(15, 200),
                     'category_id' => $category->id,
                     'brand_id' => Brand::inRandomOrder()->value('id'),
                     'is_active' => true,
@@ -49,7 +49,7 @@ class ProductCatalogSeeder extends Seeder
                 foreach ($item['sizes'] ?? ['S', 'M', 'L', 'XL'] as $size) {
                     $product->sizes()->create([
                         'size' => $size,
-                        'stock_quantity' => fake()->numberBetween(5, 40),
+                        'stock_quantity' => mt_rand(5, 40),
                     ]);
                 }
 
@@ -196,7 +196,7 @@ class ProductCatalogSeeder extends Seeder
             return [
                 'name' => $name,
                 'description' => "{$descriptionTemplate} {$name} — authentic quality, ships within 2-3 business days across Saudi Arabia.",
-                'price' => fake()->randomFloat(2, $priceRange[0], $priceRange[1]),
+                'price' => round(mt_rand($priceRange[0] * 100, $priceRange[1] * 100) / 100, 2),
                 'sizes' => $sizes,
             ];
         }, $names);
