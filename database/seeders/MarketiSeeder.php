@@ -6,11 +6,12 @@ use App\Enums\UserRole;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\DeliverySlot;
-use App\Models\Product;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class MarketiSeeder extends Seeder
@@ -53,47 +54,19 @@ class MarketiSeeder extends Seeder
             Category::create([
                 ...$cat,
                 'slug' => Str::slug($cat['name']),
+                'image' => $this->categoryImage($cat['name']),
                 'is_active' => true,
             ]);
         }
 
-        $brands = ['Apple', 'Samsung', 'Nike', 'Adidas', 'Sony', 'LG'];
-        foreach ($brands as $brandName) {
+        $brands = ['Apple', 'Samsung', 'Nike', 'Adidas', 'Sony', 'LG', 'Dyson', 'Zara', 'H&M', 'Canon', 'Bose', 'Puma'];
+        foreach ($brands as $i => $brandName) {
             Brand::create([
                 'name' => $brandName,
                 'slug' => Str::slug($brandName),
+                'logo' => $this->brandLogo($i),
                 'is_active' => true,
             ]);
-        }
-
-        $productNames = [
-            'Wireless Headphones', 'Smart Watch', 'Running Shoes', 'Laptop Bag',
-            'Bluetooth Speaker', 'Fitness Tracker', 'Sunglasses', 'Backpack',
-            'Phone Case', 'Tablet Stand', 'Gaming Mouse', 'USB-C Hub',
-            'Portable Charger', 'Desk Lamp', 'Water Bottle', 'Yoga Mat',
-            'Winter Jacket', 'Casual T-Shirt', 'Jeans', 'Sneakers',
-        ];
-
-        foreach ($productNames as $i => $name) {
-            $product = Product::create([
-                'name' => $name,
-                'slug' => Str::slug($name).'-'.$i,
-                'description' => "High quality {$name} for everyday use.",
-                'price' => fake()->randomFloat(2, 29, 999),
-                'rating' => fake()->randomFloat(2, 3, 5),
-                'rating_count' => fake()->numberBetween(10, 500),
-                'stock_quantity' => fake()->numberBetween(10, 100),
-                'category_id' => Category::inRandomOrder()->first()->id,
-                'brand_id' => Brand::inRandomOrder()->first()->id,
-                'is_active' => true,
-            ]);
-
-            foreach (['S', 'M', 'L', 'XL'] as $size) {
-                $product->sizes()->create([
-                    'size' => $size,
-                    'stock_quantity' => fake()->numberBetween(5, 30),
-                ]);
-            }
         }
 
         DeliverySlot::create(['label' => 'Morning (9AM - 12PM)', 'start_time' => '09:00', 'end_time' => '12:00']);
@@ -113,5 +86,33 @@ class MarketiSeeder extends Seeder
             'price' => 479.99,
             'billing_cycle' => 'yearly',
         ]);
+    }
+
+    private function categoryImage(string $name): string
+    {
+        return $this->downloadSeedImage('categories', Str::slug($name), 600, 400);
+    }
+
+    private function brandLogo(int $index): string
+    {
+        return $this->downloadSeedImage('brands', "brand-{$index}", 400, 400);
+    }
+
+    private function downloadSeedImage(string $folder, string $key, int $w, int $h): string
+    {
+        $path = "{$folder}/{$key}.jpg";
+
+        try {
+            $response = Http::timeout(15)->get("https://picsum.photos/seed/{$key}/{$w}/{$h}");
+            if ($response->successful() && strlen($response->body()) > 500) {
+                Storage::disk('public')->put($path, $response->body());
+
+                return $path;
+            }
+        } catch (\Throwable) {
+            //
+        }
+
+        return "https://picsum.photos/seed/{$key}/{$w}/{$h}";
     }
 }
