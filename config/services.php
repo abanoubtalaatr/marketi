@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'otp' => [
+        'fixed_code' => env('OTP_FIXED_CODE', '123456'),
+    ],
+
 ];

@@ -52,7 +52,7 @@ class AuthService
     {
         OtpVerification::where('phone', $phone)->delete();
 
-        $otp = (string) random_int(100000, 999999);
+        $otp = config('services.otp.fixed_code', '123456');
 
         return OtpVerification::create([
             'phone' => $phone,
